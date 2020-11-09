@@ -1,6 +1,6 @@
-# Assignment Run Code Instruction 
-# npm install
-# cd ios 
-# pod install
+# Assignment Run Code Instruction  please run these commands
+npm install
+cd ios 
+pod install
 
 

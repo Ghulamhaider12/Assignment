@@ -1,5 +1,5 @@
 # Assignment Run Code Instruction 
-1=>npm install
-2=>pod install
+npm install
+cd ios && pod install
 
 

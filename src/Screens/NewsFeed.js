@@ -20,13 +20,6 @@ import {
   Modal,
   TouchableOpacity,
 } from "react-native";
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from "react-native/Libraries/NewAppScreen";
 
 import { getNewsFeed } from "../Services/Api";
 import PostImage from "../components/postImage";

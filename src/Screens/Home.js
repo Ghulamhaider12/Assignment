@@ -23,7 +23,6 @@ import {
 
 import { getNewsFeed } from "../Services/Api";
 import PostImage from "../components/postImage";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import { TextInput } from "react-native-gesture-handler";
 const keyboardVerticalOffset = Platform.OS === "ios" ? 40 : 0;
 const Home: () => React$Node = () => {

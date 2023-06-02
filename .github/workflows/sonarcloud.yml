@@ -1,21 +1,69 @@
-name: Build
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened]
-jobs:
-  sonarcloud:
-    name: SonarCloud
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+# name: Build
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+    
+# jobs:
+#   sonarcloud:
+#     name: SonarCloud
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+#       - name: SonarCloud Scan
+#         uses: SonarSource/sonarcloud-github-action@master
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
+
+# SonarCloud configuration
+
+# Branch analysis
+branch_analysis:
+  name: ${{ env.BRANCH_NAME }}  # Set the branch name dynamically using environment variable
+  type: short-lived
+
+# Quality gate
+qualitygate:
+  name: My Quality Gate
+  conditions:
+    - metric: bugs
+      op: GT
+      error: 0
+    - metric: vulnerability
+      op: GT
+      error: 0
+    - metric: code_smells
+      op: GT
+      error: 0
+    # Add more conditions for other metrics if needed
+
+# Code push step
+push_code:
+  needs: [sonar_analysis]  # Make sure the SonarCloud analysis step is completed
+  runs-on: ${{ needs.sonar_analysis.outputs.runner }}
+  steps:
+    - name: Check Quality Gate Status
+      id: check_quality_gate
+      run: echo ::set-output name=passed::$(if [ $(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}&branch=${{ env.BRANCH_NAME }}" | jq -r '.projectStatus.status') = "OK" ]; then echo true; else echo false; fi)
+
+    - name: Push Code to Main
+      if: ${{ needs.sonar_analysis.outputs.branch != 'main' && needs.push_code.outputs.passed == 'true' }}
+      # Code push step configuration
+      # ...
+      
+# SonarCloud analysis step
+sonar_analysis:
+  runs-on: ubuntu-latest
+  steps:
+    - name: SonarCloud Analysis
+      # SonarCloud analysis configuration
+      # ...
         

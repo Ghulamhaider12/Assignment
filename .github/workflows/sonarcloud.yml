@@ -18,16 +18,7 @@ jobs:
           java-version: '11'
 
       - name: SonarCloud Analysis
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          organization: 'myorganization'  # Replace with your SonarCloud organization key
-          projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
-          projectName: 'My Project'  # Replace with your project name
-          sources: './'  # Specify the source code directory
-          extraProperties: |
-            sonar.qualitygate.wait=true  # Wait for the quality gate to pass
+        run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.sources=./
 
       - name: Check Quality Gate Status
         id: check_quality_gate

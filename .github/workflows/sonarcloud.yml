@@ -20,9 +20,7 @@
 #         env:
 #           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
 #           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-
-
+        
 # SonarCloud configuration
 
 # Branch analysis
@@ -52,7 +50,8 @@ push_code:
   steps:
     - name: Check Quality Gate Status
       id: check_quality_gate
-      run: echo ::set-output name=passed::$(if [ $(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}&branch=${{ env.BRANCH_NAME }}" | jq -r '.projectStatus.status') = "OK" ]; then echo true; else echo false; fi)
+      run: |
+        echo "::set-output name=passed::$(if [[ \$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}&branch=${{ env.BRANCH_NAME }}" | jq -r '.projectStatus.status') == 'OK' ]]; then echo true; else echo false; fi)"
 
     - name: Push Code to Main
       if: ${{ needs.sonar_analysis.outputs.branch != 'main' && needs.push_code.outputs.passed == 'true' }}
@@ -66,4 +65,17 @@ sonar_analysis:
     - name: SonarCloud Analysis
       # SonarCloud analysis configuration
       # ...
-        
+
+  jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

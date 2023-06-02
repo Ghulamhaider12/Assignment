@@ -1,27 +1,4 @@
-
-# name: Build
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     types: [opened, synchronize, reopened]
-    
-# jobs:
-#   sonarcloud:
-#     name: SonarCloud
-#     runs-on: ubuntu-latest
-#     steps:
-
-#       - uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-#       - name: SonarCloud Scan
-#         uses: SonarSource/sonarcloud-github-action@master
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  # SonarCloud configuration
+# SonarCloud configuration
 
 on:
   push:
@@ -29,58 +6,35 @@ on:
       - '*'  # Trigger on all branches
 
 jobs:
-  sonarcloud:
-    name: SonarCloud
+  sonar_analysis:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+          java-version: '11'
+
+      - name: SonarCloud Analysis
+        uses: sonarsource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  # SonarCloud configuration
-# Branch analysis
-branch_analysis:
-  name: ${{ github.ref }}  # Set the branch name dynamically using GitHub context
-  type: short-lived
+        with:
+          organization: 'myorganization'  # Replace with your SonarCloud organization key
+          projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
+          projectName: 'My Project'  # Replace with your project name
+          sources: './'  # Specify the source code directory
+          extraProperties: |
+            sonar.qualitygate.wait=true  # Wait for the quality gate to pass
 
-# Quality gate
-qualitygate:
-  name: My Quality Gate
-  conditions:
-    - metric: bugs
-      op: GT
-      error: 0
-    - metric: vulnerability
-      op: GT
-      error: 0
-    - metric: code_smells
-      op: GT
-      error: 0
-    # Add more conditions for other metrics if needed
+      - name: Check Quality Gate Status
+        id: check_quality_gate
+        run: |
+          echo "::set-output name=passed::$(if [[ \$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}&branch=${{ github.ref }}" | jq -r '.projectStatus.status') == 'OK' ]]; then echo true; else echo false; fi)"
 
-# Code push step
-push_code:
-  needs: [sonar_analysis]  # Make sure the SonarCloud analysis step is completed
-  runs-on: ${{ needs.sonar_analysis.outputs.runner }}
-  steps:
-    - name: Check Quality Gate Status
-      run: |
-        echo "::set-output name=passed::$(if [[ \$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{secrets.SONAR_PROJECT_KEY }}&branch=${{ github.ref }}" | jq -r '.projectStatus.status') == 'OK' ]]; then echo true; else echo false; fi)"
-
-    - name: Push Code to Main
-      if: ${{ needs.sonar_analysis.outputs.branch != 'main' && needs.push_code.outputs.passed == 'true' }}
-      # Code push step configuration
-      # ...
-      
-# SonarCloud analysis step
-sonar_analysis:
-  runs-on: ubuntu-latest
-  steps:
-    - name: SonarCloud Analysis
-     
-
+      - name: Push Code to Main
+        if: ${{ needs.sonar_analysis.outputs.branch != 'main' && needs.check_quality_gate.outputs.passed == 'true' }}
+        # Code push step configuration
+        # ...

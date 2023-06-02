@@ -69,7 +69,6 @@ push_code:
   runs-on: ${{ needs.sonar_analysis.outputs.runner }}
   steps:
     - name: Check Quality Gate Status
-      id: check_quality_gate
       run: |
         echo "::set-output name=passed::$(if [[ \$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{secrets.SONAR_PROJECT_KEY }}&branch=${{ github.ref }}" | jq -r '.projectStatus.status') == 'OK' ]]; then echo true; else echo false; fi)"
 

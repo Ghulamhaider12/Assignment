@@ -12,6 +12,7 @@
 #     name: SonarCloud
 #     runs-on: ubuntu-latest
 #     steps:
+
 #       - uses: actions/checkout@v3
 #         with:
 #           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
@@ -20,12 +21,16 @@
 #         env:
 #           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
 #           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        
-# SonarCloud configuration
+  # SonarCloud configuration
+
+on:
+  push:
+    branches:
+      - '*'  # Trigger on all branches
 
 # Branch analysis
 branch_analysis:
-  name: ${{ env.BRANCH_NAME }}  # Set the branch name dynamically using environment variable
+  name: ${{ github.ref }}  # Set the branch name dynamically using GitHub context
   type: short-lived
 
 # Quality gate
@@ -51,7 +56,7 @@ push_code:
     - name: Check Quality Gate Status
       id: check_quality_gate
       run: |
-        echo "::set-output name=passed::$(if [[ \$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}&branch=${{ env.BRANCH_NAME }}" | jq -r '.projectStatus.status') == 'OK' ]]; then echo true; else echo false; fi)"
+        echo "::set-output name=passed::$(if [[ \$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{secrets.SONAR_PROJECT_KEY }}&branch=${{ github.ref }}" | jq -r '.projectStatus.status') == 'OK' ]]; then echo true; else echo false; fi)"
 
     - name: Push Code to Main
       if: ${{ needs.sonar_analysis.outputs.branch != 'main' && needs.push_code.outputs.passed == 'true' }}
@@ -66,16 +71,3 @@ sonar_analysis:
       # SonarCloud analysis configuration
       # ...
 
-      # jobs:
-#   sonarcloud:
-#     name: SonarCloud
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-#       - name: SonarCloud Scan
-#         uses: SonarSource/sonarcloud-github-action@master
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

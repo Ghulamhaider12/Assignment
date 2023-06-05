@@ -20,7 +20,7 @@ jobs:
         run: |
           # Run SonarQube scan commands 
 
-      - name: Check SonarQube Quality Gat
+      - name: Check SonarQube Quality 
         run: |
           # Check SonarQube quality gate status and store it in a variable
 

@@ -50,9 +50,9 @@ jobs:
       - name: Run SonarCloud analysis
         uses: SonarSource/sonarcloud-github-action@master
         with:
-          
+          organization: ghulamhaider12
           token: ${{ env.SONAR_TOKEN }}
-          projectKey: your-project-key
+          projectKey: Ghulamhaider12_Assignment
           projectName: 'Your Project Name'
           scannerMode: 'cli'
           extraProperties: |
@@ -63,8 +63,11 @@ jobs:
             sonar.test.inclusions=**/*.test.*
 
       - name: Check SonarCloud Quality Gate
+        id: check_sonarcloud
         run: |
-          # Check SonarCloud quality gate status and store it in a variable
+          quality_gate_status=$(curl -s -u $SONAR_TOKEN: -X GET "https://sonarcloud.io/api/qualitygates/project_status?projectKey=Ghulamhaider12_Assignment" | jq -r '.projectStatus.status')
+          echo "SonarCloud Quality Gate Status: $quality_gate_status"
+          echo "::set-output name=quality_gate_status::$quality_gate_status"
 
       - name: Push to Main Branch
         if: ${{ github.event_name == 'push' && steps.check_sonarcloud.outputs.quality_gate_status != 'PASSED' }}

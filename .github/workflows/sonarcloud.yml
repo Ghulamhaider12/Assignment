@@ -16,11 +16,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: SonarQube Scan
-        run: |
-          # Run SonarQube scan commands 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}]
 
-      - name: Check SonarQube Quality Gat
+          
+      - name: Check SonarQube Quality 
         run: |
           # Check SonarQube quality gate status and store it in a variable
 

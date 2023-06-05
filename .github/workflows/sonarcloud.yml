@@ -55,9 +55,9 @@ jobs:
           key: ${{ runner.os }}-sonar
 
       - name: Run SonarCloud analysis
-        uses: sonarsource/sonarcloud-github-action@v1
+        uses: SonarSource/sonarcloud-github-action@master
         with:
-          organization: your-organization-key
+          
           token: ${{ env.SONAR_TOKEN }}
           projectKey: your-project-key
           projectName: 'Your Project Name'

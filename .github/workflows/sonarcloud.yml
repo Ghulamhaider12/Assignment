@@ -16,22 +16,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}]
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
 
-          
-      - name: Check SonarQube Quality 
+      - name: SonarQube Scan
+        run: |
+          # Run SonarQube scan commands here
+
+      - name: Check SonarQube Quality Gate
         run: |
           # Check SonarQube quality gate status and store it in a variable
+
+      - name: Generate SonarCloud Report
+        if: ${{ github.event_name == 'push' && steps.check_sonarqube.outputs.quality_gate_status == 'passed' }}
+        run: |
+          # Generate SonarCloud report command
 
       - name: Push to Main Branch
         if: ${{ github.event_name == 'push' && steps.check_sonarqube.outputs.quality_gate_status != 'passed' }}
         run: |
-          git config --global user.name 'Ghulam Haider'
-          git config --global user.email 'haidernuman14@gmail.com'
+          git config --global user.name 'Your Name'
+          git config --global user.email 'your-email@example.com'
           git checkout main
           git add .
           git commit -m 'Update code after SonarQube scan'

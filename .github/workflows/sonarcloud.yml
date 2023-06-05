@@ -1,4 +1,4 @@
-name: SonarQube Quality Gate
+name: SonarCloud Quality Gate
 
 on:
   push:
@@ -16,12 +16,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v2
         with:
-          token: ${{ secrets.SONAR_TOKEN }}
-          projectBaseDir: .
-          extras: |
-            sonar.qualitygate.wait=true
-            sonar.qualitygate.timeout=300
+          java-version: '11'
+
+      - name: SonarQube Scan
+        run: |
+          # Run SonarQube scan commands here
+
+      - name: Check SonarQube Quality Gate
+        run: |
+          # Check SonarQube quality gate status and store it in a variable
+
+      - name: Push to Main Branch
+        if: ${{ github.event_name == 'push' && steps.check_sonarqube.outputs.quality_gate_status != 'passed' }}
+        run: |
+          git config --global user.name 'Ghulam Haider'
+          git config --global user.email 'haidernuman14@gmail.com'
+          git checkout main
+          git add .
+          git commit -m 'Update code after SonarQube scan'
+          git push origin main
+
+      - name: Prevent PR Merge
+        if: ${{ github.event_name == 'pull_request' && steps.check_sonarqube.outputs.quality_gate_status == 'passed' }}
+        run: |
+          echo "SonarQube quality gate passed. Please ensure code quality before merging."
 

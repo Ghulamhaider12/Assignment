@@ -51,7 +51,7 @@ jobs:
           organization: ghulamhaider12
           token: ${{ env.SONAR_TOKEN }}
           projectKey: Ghulamhaider12_Assignment
-          projectName: 'Your Project Name'
+          projectName: 'Assignment'
           scannerMode: 'cli'
           extraProperties: |
             sonar.coverage.exclusions=**/*.test.*

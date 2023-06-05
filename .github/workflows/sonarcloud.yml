@@ -1,4 +1,25 @@
-name: SonarCloud Quality Gate
+# name: Build
+# on:
+#   push:
+#     branches
+#       - main
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+# jobs:
+#   sonarcloud:
+#     name: SonarCloud
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+#       - name: SonarCloud Scan
+#         uses: SonarSource/sonarcloud-github-action@master
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+name: SonarCloud Analysis
 
 on:
   push:
@@ -6,39 +27,60 @@ on:
       - main
   pull_request:
     branches:
-      - main
+      - main  
 
 jobs:
-  sonarqube:
+
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: SonarCloud Scan
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+
+      - name: Run SonarCloud analysis
         uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}]
+        with:
+          organization: ghulamhaider12
+          token: ${{ env.SONAR_TOKEN }}
+          projectKey: Ghulamhaider12_Assignment
+          projectName: 'Assignment'
+          scannerMode: 'cli'
+          extraProperties: |
+            sonar.coverage.exclusions=**/*.test.*
+            sonar.exclusions=**/*.xml,**/*.json
+            sonar.java.binaries=target/classes
+            sonar.java.libraries=target/lib/**/*.jar
+            sonar.test.inclusions=**/*.test.*
+
+      - name: Check SonarCloud Quality Gate
+        id: check_sonarcloud
+        run: |
+          quality_gate_status=$(curl -s -u $SONAR_TOKEN: -X GET "https://sonarcloud.io/api/qualitygates/project_status?projectKey=Ghulamhaider12_Assignment" | jq -r '.projectStatus.status')
+          echo "SonarCloud Quality Gate Status: $quality_gate_status"
+          echo "::set-output name=quality_gate_status::$quality_gate_status"
+        env: ${{ secrets.SONAR_TOKEN }}
 
           
-      - name: Check SonarQube Quality 
-        run: |
-          # Check SonarQube quality gate status and store it in a variable
 
       - name: Push to Main Branch
-        if: ${{ github.event_name == 'push' && steps.check_sonarqube.outputs.quality_gate_status != 'passed' }}
+        if: ${{ github.event_name == 'push' && steps.check_sonarcloud.outputs.quality_gate_status != 'PASSED' }}
         run: |
-          git config --global user.name 'Ghulam Haider'
-          git config --global user.email 'haidernuman14@gmail.com'
+          git config --global user.name 'Ghulam haider'
+          git config --global user.email 'hadiernuman14@gmail.com'
           git checkout main
           git add .
-          git commit -m 'Update code after SonarQube scan'
+          git commit -m 'Update code after SonarCloud scan'
           git push origin main
 
       - name: Prevent PR Merge
-        if: ${{ github.event_name == 'pull_request' && steps.check_sonarqube.outputs.quality_gate_status == 'passed' }}
+        if: ${{ github.event_name == 'pull_request' && steps.check_sonarcloud.outputs.quality_gate_status == 'PASSED' }}
         run: |
-          echo "SonarQube quality gate passed. Please ensure code quality before merging."
-
+          echo "SonarCloud quality gate passed. Please ensure code quality before merging."
